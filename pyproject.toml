@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yipao"
-version="0.0.2"
+version="0.0.1"
 readme = "README.md"
 license = ""
 description="Yipao is a library enabling AI-driven interactions with SQL databases, facilitating dynamic SQL query generation and execution."
@@ -29,8 +29,6 @@ dependencies = [
 doc = [
     "sphinx",
     "sphinxawesome-theme",
-    "sphinx-autodoc-typehints",
-    "sphinx-autodoc-annotation",
     "sphinx-autodoc-annotation",
     "sphinx-autodoc-typehints"
     ]

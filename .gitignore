@@ -1,4 +1,5 @@
 .venv
+.yipao
 examples/vectorstore
 */__pycache__/
 *.pyc
