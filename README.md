@@ -1,35 +1,63 @@
-# yipao
-library for the AI connnection with sql
+
+<div align="center">
+  <img src="docs/source/_static/logo.png" alt="Yipao Logo" width="200"/>
+</div>
 
 
-remember to install the requirements.txt
+Yipao is a cutting-edge Python library that enables AI-driven interactions with SQL databases. It specializes in facilitating dynamic SQL query generation and execution, particularly for large databases with numerous tables. Integrated with ChromaDB, Google Generative AI, Vertex AI, and Qdrant, Yipao is a powerful tool for developers looking to leverage machine learning models and vector storage solutions.
+
+## Why Yipao?
+
+Yipao is designed to simplify complex SQL query operations and enhance the interaction between large-scale database systems and AI technologies. It allows developers to:
+- Generate and execute SQL queries dynamically using natural language.
+- Integrate seamlessly with leading AI platforms and vector databases.
+- Improve database querying efficiency and accuracy through AI-driven insights.
+
+## Installation
+
+To install Yipao, you can use pip:
 
 ```bash
-pip install -r requirements.txt
+pip install yipao
 ```
 
+## Quick Start
 
-excuthe the example
+Here's a quick example to get you started with **Yipao**:
 
-```bash
-python examples/main.py
+```python
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+import yipao as yp
+from yipao.databases import MySql
+from yipao.vectorstores import ChromaDB
+from yipao.LLM import GoogleGenAi
+
+connection = {
+    'host': os.getenv('HOST'),
+    'user': os.getenv('USERDB'),
+    'password': os.getenv('PASSWORD'),
+    'database': os.getenv('DATABASE'),
+    'port': int(os.getenv('PORT'))
+}
+
+mysql = MySql(**connection)
+
+chroma = ChromaDB(path='vectorstore', allow_reset=True)
+
+gemini = GoogleGenAi(model='gemini-pro', api_key=os.getenv('APIKEYGEMINI'))
+
+agent = yp.Agent(llm=gemini, 
+                 database=mysql, 
+                 vectorstore=chroma)
+
+agent.document_database()
+
+prompt = f"Cual es el top 10 de mis productos mas vendidos?, pista usa las siguientes tablas: phppos_items y phppos_sales_items"
+
+res = agent.invoke(prompt)
+
+# tus productos mas vendidos son tales
 ```
-
-
-run api
-    
-```bash
-uvicorn app:app --reload
-```
-
-
-servers:
-  - url: 'https://24.199.111.101:8000'
-
-
-
-[{token:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhZGEiLCJpZCI6Mywic3RvcmUiOm51bGwsInVzZXJuYW1lX1BvcyI6IkRhbmtvbCIsImV4cCI6MTcxOTI3NTg4OX0.7qAeAtgSt_a43bP0dNnBp9-VVWohJSCrkoNGyJy4rpg"}]
-
-question: cual es mi mejor producto?
-
-token [SAFE]: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRhZGEiLCJpZCI6Mywic3RvcmUiOm51bGwsInVzZXJuYW1lX1BvcyI6IkRhbmtvbCIsImV4cCI6MTcxOTI3NTg4OX0.7qAeAtgSt_a43bP0dNnBp9-VVWohJSCrkoNGyJy4rpg"
