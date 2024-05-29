@@ -1,0 +1,8 @@
+pymysql
+google-generativeai
+chromadb
+pandas
+dotenv
+tabulate
+vertexai
+pyjwt[crypto]

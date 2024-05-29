@@ -1,0 +1,12 @@
+.venv
+examples/vectorstore
+*/__pycache__/
+*.pyc
+examples\.env
+yipao.egg-info
+vectorstore
+credentiants
+build/
+examples/credentials
+docs/_build
+docs/source/_autosummary

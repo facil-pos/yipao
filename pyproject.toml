@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yipao"
+version="0.0.2"
+readme = "README.md"
+license = ""
+description="Yipao is a library enabling AI-driven interactions with SQL databases, facilitating dynamic SQL query generation and execution."
+requires-python = ">=3"
+authors= [
+{ name = "factral", email="nelsonfabiancs8@gmail.com"},
+{ name = "Daniel", email="manosalvasierra@gmail.com" }
+]
+keywords = [ "sql", "ai", "database", "query", "dynamic", "execution", "generation", "rag" ]
+dependencies = [
+    "pymysql",
+    "google-generativeai",
+    "chromadb",
+    "pandas",
+    "python-dotenv ",
+    "tabulate",
+    "vertexai",
+    "qdrant-client[fastembed]" #only with qdrant
+]
+
+[project.optional-dependencies]
+doc = [
+    "sphinx",
+    "sphinxawesome-theme",
+    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-annotation",
+    "sphinx-autodoc-annotation",
+    "sphinx-autodoc-typehints"
+    ]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/yipao",
+]
+
+
