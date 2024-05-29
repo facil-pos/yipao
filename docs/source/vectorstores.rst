@@ -7,3 +7,4 @@ VectorStores Module
    :template: autosummary/class.rst
 
    yipao.vectorstores.chromadb.ChromaDB
+   yipao.vectorstores.qdrant.QdrantDB
