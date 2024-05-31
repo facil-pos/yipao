@@ -9,8 +9,9 @@ cd docs
 
 3. Build the documentation
 ```bash
-make html
+sphinx-build source  _build
 ```
+
 
 4. Open the documentation, there is a index.html file in the _build/html directory
 ```bash

@@ -6,4 +6,4 @@ Retrievers Module
    :recursive:
    :template: autosummary/class.rst
 
-   yipao.retrievers.vectorStoreRetriever
+   yipao.retrievers.VectorStoreRetriever
