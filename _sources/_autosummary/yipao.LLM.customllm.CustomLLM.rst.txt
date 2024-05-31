@@ -1,0 +1,26 @@
+﻿yipao.LLM.customllm.CustomLLM
+=============================
+
+.. currentmodule:: yipao.LLM.customllm
+
+.. autoclass:: CustomLLM
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~CustomLLM.__init__
+      ~CustomLLM.count_tokens
+      ~CustomLLM.invoke
+      ~CustomLLM.monitor
+      ~CustomLLM.validate_prompt
+   
+   
+
+   
+   
+   

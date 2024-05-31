@@ -1,0 +1,25 @@
+﻿yipao.agent.core.Agent
+======================
+
+.. currentmodule:: yipao.agent.core
+
+.. autoclass:: Agent
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Agent.__init__
+      ~Agent.document_database
+      ~Agent.execute_sql
+      ~Agent.invoke
+   
+   
+
+   
+   
+   

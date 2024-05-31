@@ -1,0 +1,26 @@
+﻿yipao.LLM.gemini.GoogleGenAi
+============================
+
+.. currentmodule:: yipao.LLM.gemini
+
+.. autoclass:: GoogleGenAi
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~GoogleGenAi.__init__
+      ~GoogleGenAi.count_tokens
+      ~GoogleGenAi.invoke
+      ~GoogleGenAi.monitor
+      ~GoogleGenAi.validate_prompt
+   
+   
+
+   
+   
+   

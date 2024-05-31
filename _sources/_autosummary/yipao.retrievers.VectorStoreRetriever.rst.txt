@@ -1,0 +1,23 @@
+﻿yipao.retrievers.VectorStoreRetriever
+=====================================
+
+.. currentmodule:: yipao.retrievers
+
+.. autoclass:: VectorStoreRetriever
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~VectorStoreRetriever.__init__
+      ~VectorStoreRetriever.get_related_ddl
+   
+   
+
+   
+   
+   

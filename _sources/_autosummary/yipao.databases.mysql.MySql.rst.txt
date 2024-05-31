@@ -1,0 +1,27 @@
+﻿yipao.databases.mysql.MySql
+===========================
+
+.. currentmodule:: yipao.databases.mysql
+
+.. autoclass:: MySql
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MySql.__init__
+      ~MySql.close
+      ~MySql.connect
+      ~MySql.describe_database
+      ~MySql.describe_ddl
+      ~MySql.execute_query
+   
+   
+
+   
+   
+   

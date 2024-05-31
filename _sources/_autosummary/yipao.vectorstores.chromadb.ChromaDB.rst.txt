@@ -1,0 +1,26 @@
+﻿yipao.vectorstores.chromadb.ChromaDB
+====================================
+
+.. currentmodule:: yipao.vectorstores.chromadb
+
+.. autoclass:: ChromaDB
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ChromaDB.__init__
+      ~ChromaDB.add_ddl
+      ~ChromaDB.add_ddls
+      ~ChromaDB.query
+      ~ChromaDB.reset
+   
+   
+
+   
+   
+   
