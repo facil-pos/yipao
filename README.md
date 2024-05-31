@@ -1,6 +1,9 @@
 
 <div align="center">
   <img src="https://github.com/facil-pos/yipao/blob/main/docs/source/_static/logo.png?raw=true" alt="Yipao Logo" width="200"/>
+
+| [![GitHub](https://img.shields.io/badge/GitHub-yipao-blue?logo=github)](https://github.com/facil-pos/yipao) | [![PyPI](https://img.shields.io/pypi/v/yipao?logo=pypi)](https://pypi.org/project/yipao/) | [![Documentation](https://img.shields.io/badge/Documentation-yipao-blue?logo=read-the-docs)](https://facil-pos.github.io/yipao/) |
+
 </div>
 
 
