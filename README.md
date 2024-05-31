@@ -66,6 +66,21 @@ print(res)
 # your best products are...
 ```
 
+# ROADMAP
+
+- implement groq interface
+- implement openai interface
+- customdatabase interface
+- sqlite integration, other sql dialects
+- create tests
+- add sql database as example
+- RAG-graph based for better accuracy
+   - neo4j integration
+   - embedding store in graphs
+
+
 # Contributing 👋
 
 Want to help improve Yipao? Contributions are welcome! 🎉
+
+
