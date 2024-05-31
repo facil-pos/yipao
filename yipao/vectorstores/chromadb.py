@@ -1,10 +1,9 @@
-import chromadb
-from chromadb.config import Settings
-from chromadb.utils import embedding_functions
 import uuid
 from typing import Dict 
 
 class ChromaDB:
+
+
     """
     Class for interacting with ChromaDB, a database designed for handling and querying embedded documents.
 
@@ -24,7 +23,14 @@ class ChromaDB:
 
         Raises:
             TypeError: If cfg is neither a dict nor a string.
-        """
+        """ 
+        try: 
+            import chromadb
+            from chromadb.config import Settings
+            from chromadb.utils import embedding_functions
+        except ImportError:
+            raise ImportError("Please install the chromadb package using 'pip install chromadb'")
+        
         if isinstance(cfg, str):
             self.client = chromadb.PersistentClient(path=cfg, settings=Settings(**settings))
         elif isinstance(cfg, Dict):

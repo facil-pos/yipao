@@ -19,7 +19,7 @@ class Agent:
     """
 
 
-    def __init__(self, llm: CustomLLM, database, vectorstore, name_collection):
+    def __init__(self, llm: CustomLLM, database, vectorstore, name_collection = 'ddl'):
         """
         Initializes the Agent with a language model, database, and vector store.
 

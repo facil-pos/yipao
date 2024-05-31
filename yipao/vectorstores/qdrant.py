@@ -6,7 +6,7 @@ class QdrantDB:
 
 
     """
-    def __init__(self, cfg: str, api_key: str=None, embedding_model: str="sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, cfg: str, api_key: str=None, embedding_model: str="sentence-transformers/all-MiniLM-L6-v2", name_collection:str = 'ddl'):
         """
         Initializes the Qdrant client based on configuration.
 
@@ -19,6 +19,7 @@ class QdrantDB:
         """
         self.client = QdrantClient(cfg, api_key=api_key)
         self.client.set_model(embedding_model)
+        self.initialize(name_collection)
         print(f"Qdrant client initialized with Embedding-Model: {embedding_model}")
 
     
