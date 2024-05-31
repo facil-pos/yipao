@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src="docs/source/_static/logo.png" alt="Yipao Logo" width="200"/>
+  <img src="https://github.com/facil-pos/yipao/blob/main/docs/source/_static/logo.png?raw=true" alt="Yipao Logo" width="200"/>
 </div>
 
 
