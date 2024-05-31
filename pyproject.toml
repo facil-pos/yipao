@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "yipao"
 version="0.0.3"
 readme = "README.md"
-license = ""
+license = { text = "MIT License" }
 description="Yipao is a library enabling AI-driven interactions with SQL databases, facilitating dynamic SQL query generation and execution."
 requires-python = ">=3"
 authors= [
@@ -24,6 +24,10 @@ dependencies = [
     "vertexai",
     "qdrant-client[fastembed]" #only with qdrant
 ]
+
+[project.urls]
+"Homepage" = "https://facil-pos.github.io/yipao/"
+"Development" = "https://github.com/facil-pos/yipao"
 
 [project.optional-dependencies]
 doc = [
