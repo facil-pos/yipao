@@ -1,5 +1,5 @@
 import os
-import ssl
+# import ssl
 from fastapi import FastAPI
 from pydantic import BaseModel
 import vertexai.preview.generative_models as generative_models
@@ -12,24 +12,11 @@ load_dotenv()
 import yipao as yp
 from yipao.databases import MySql
 from yipao.vectorstores import QdrantDB
-from yipao.LLM import VertexAiLLM
+from yipao.LLM import GoogleGenAi
 
-KEY_PATH='./examples/credentials/gen-lang-client-0867205962-8353cd35557a.json'
-PROJECT_ID = "gen-lang-client-0867205962"
-REGION = "us-central1"
-MODEL = "gemini-1.5-pro-preview-0514"
-CONFIG = {
-            "max_output_tokens": 1000,
-            "temperature": 0.3,
-            "top_p": 0.95,
-            "top_k": 40
-        }
-SAFETY_SETTINGS = {
-                    generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                }
+KEY = "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"
+MODEL = "llama-3.1-8b-instant"
+CONFIG = 0.3
 
 app = FastAPI(
         title="Simple Inference API",
@@ -42,8 +29,8 @@ app.openapi_version = "3.0.0"
 # SSL
 #----------------
 
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ssl_context.load_cert_chain('./examples/api/server.crt', keyfile='./examples/api/server.key')
+#ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+#ssl_context.load_cert_chain('./examples/api/server.crt', keyfile='./examples/api/server.key')
 
 # --------------
 # APP
@@ -63,16 +50,8 @@ class InitializeModel(BaseModel):
 
 
 def connect_sql(db):
-    connection = {
-        'host': os.getenv('HOST'),
-        'user': os.getenv('USERDB'),
-        'password': os.getenv('PASSWORD'),
-        'database': db,
-        'port': int(os.getenv('PORT'))
-    }
-
     try:
-        mysql = MySql(**connection)
+        mysql = MySql(**db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to connect to MySQL: {str(e)}")
 
@@ -90,8 +69,8 @@ def parse_sql_url(url):
     return connection
 
 
-qdrant = QdrantDB(':memory:', os.getenv('APIKEY_QDRANT'))
-chat = VertexAiLLM(MODEL, KEY_PATH, PROJECT_ID, CONFIG, SAFETY_SETTINGS)
+qdrant = QdrantDB("http://localhost:6333", os.getenv('APIKEY_QDRANT'))
+chat = GoogleGenAi("gemini-1.5-flash","AIzaSyB0a2toqWMPKbqM5jojx1RFTT1PhT-T7zY",temperature=0.2)
 
 #--------------
 # ROUTES
@@ -101,20 +80,27 @@ chat = VertexAiLLM(MODEL, KEY_PATH, PROJECT_ID, CONFIG, SAFETY_SETTINGS)
 @app.post("/init_item", summary="Initializes by the item")
 def initialize_qdrant(data: InitializeModel):
 
-    connection = parse_sql_url(data.Item)
+    try:
+        connection = parse_sql_url(data.Item)
 
-    qdrant.initialize(connection["database"])
+        qdrant.initialize(connection["database"])
 
-    mysql = connect_sql(connection)
+        mysql = connect_sql(connection)
 
-    agent = yp.Agent(llm=chat, 
-                        database=mysql, 
-                        vectorstore=qdrant,
-                        name_collection=data.Item)
-    agent.document_database()
+        agent = yp.Agent(llm=chat, 
+                            database=mysql, 
+                            vectorstore=qdrant,
+                            name_collection=connection["database"])
+        print('Entrenan documento', agent)
+        result = agent.document_database(force_update=True)
+        print('Documentos Entrenados', result)
 
-
-    return {"message": "Qdrant initialized", "payload": data.Item}
+        return {"message": "Qdrant initialized", "payload": connection["database"]}
+    except Exception as e:
+        print('error',e)
+        return{
+            "error": 'Error'
+        }
 
 
 @app.post("/inference", summary="Executes a natural language query. Needs Item and 'q' is the query to be performed.")
