@@ -95,6 +95,7 @@ class MySql:
             List[str]: List of descriptions for each table in the database.
 
         """
+        cursor = None
         try:
             cursor = self.connection.cursor()
             cursor.execute(DESCRIBE_DATABASE_QUERY.format(database, database))
@@ -143,6 +144,11 @@ class MySql:
         except Exception as e:
             print(e)
             return f"Error describing the database"
+        
+        finally:
+            if cursor:
+                cursor.close()  # Cerramos el cursor manualmente
+            self.connection.close()  # Cerramos la conexión
 
     
     def execute_query(self, query: str, markdown: bool = False):
@@ -155,6 +161,7 @@ class MySql:
         Returns:
         str: Result of the query execution.
         """
+        cursor = None
         try:
             cursor = self.connection.cursor()
             cursor.execute(query)
@@ -167,3 +174,5 @@ class MySql:
             raise TypeError(f"SQL Error {sql_error.args[0]}: {sql_error.args[1]}")
         except Exception as e:
             raise TypeError(f"Error executing query: {e}") 
+        finally:
+            self.connection.close()

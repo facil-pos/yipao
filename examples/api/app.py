@@ -1,8 +1,9 @@
 import os
 # import ssl
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from pydantic import BaseModel
-import vertexai.preview.generative_models as generative_models
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Annotated
 from pydantic import BaseModel, Field
 from fastapi import HTTPException
 import re
@@ -18,12 +19,26 @@ KEY = "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"
 MODEL = "llama-3.1-8b-instant"
 CONFIG = 0.3
 
+origins = [
+    "http://127.0.0.1:4200",
+    "*"
+]
+
 app = FastAPI(
         title="Simple Inference API",
         version="1.0.0",
-        description="This is the OpenAPI specification of a service to query a sql database using natural language. Its purpose is to illustrate how to declare your REST API as an OpenAPI tool."
+        description="Esta es una demo en swagger ui de una api para realizar consultas sql a una base de datos por medio de lenguaje natural"
 )
 app.openapi_version = "3.0.0"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 #----------------
 # SSL
@@ -36,17 +51,27 @@ app.openapi_version = "3.0.0"
 # APP
 # --------------
 
-@app.get("/ping")
+@app.get("/ping", summary="Ping de validacion")
 def root():
     return {"Hello": "World"}
 
 
 class QueryModel(BaseModel):
-    Item: str = Field(..., description="Name Item")
-    q: str
+    Item: str = Field(..., description="Url database")
+    q: str = Field(..., description='Pregunta del usuario')
 
 class InitializeModel(BaseModel):
-    Item: str = Field(..., description="Name Item")
+    Item: str = Field(
+        ..., 
+        examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], 
+        description="Url database")
+
+    class Config:
+            schema_extra = {
+                "example": {
+                    "Item": "root:123456@127.0.0.1:3306/messagehistoryrag"
+                }
+            }
 
 
 def connect_sql(db):
@@ -77,8 +102,14 @@ chat = GoogleGenAi("gemini-1.5-flash","AIzaSyB0a2toqWMPKbqM5jojx1RFTT1PhT-T7zY",
 #--------------
 
 
-@app.post("/init_item", summary="Initializes by the item")
-def initialize_qdrant(data: InitializeModel):
+@app.post("/init_item", summary="Inicializa la conexion a la base de datos SQL usando la url en base root:123456@127.0.0.1:3306/namedatabase")
+def initialize_qdrant(data: Annotated[InitializeModel, Body(
+    examples = [
+        {
+            "Item": "root:123456@127.0.0.1:3306/messagehistoryrag"
+        }
+    ]
+)]):
 
     try:
         connection = parse_sql_url(data.Item)
@@ -91,19 +122,15 @@ def initialize_qdrant(data: InitializeModel):
                             database=mysql, 
                             vectorstore=qdrant,
                             name_collection=connection["database"])
-        print('Entrenan documento', agent)
-        result = agent.document_database(connection["database"], force_update=True)
-        print('Documentos Entrenados', result)
+
+        agent.document_database(connection["database"])
 
         return {"message": "Qdrant initialized", "payload": connection["database"]}
     except Exception as e:
         print('error',e)
-        return{
-            "error": 'Error'
-        }
+        raise HTTPException(status_code=401, detail="No fue posible conectar a la db")
 
-
-@app.post("/inference", summary="Executes a natural language query. Needs Item and 'q' is the query to be performed.")
+@app.post("/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
 def query_inference(data: QueryModel):
 
     connection = parse_sql_url(data.Item)
@@ -117,7 +144,11 @@ def query_inference(data: QueryModel):
 
     try:
         res, _, _, sql_query = agent.invoke(data.q, debug=True, iterations=6)
+
+        res =  res.to_dict(orient="records")
+
+        return {"q": data.q, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
+        print('Error en el query',e)
+        raise HTTPException(status_code=401, detail=f"Query execution failed")
     
-    return {"q": data.q, "res": res, "sql_query_generated": sql_query}

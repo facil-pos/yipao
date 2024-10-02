@@ -3,6 +3,9 @@ from ..prompts import PromptBuilder
 from ..utils import extract_json
 from ..LLM import CustomLLM
 
+import numpy as np
+import pandas as pd
+
 class Agent:
     """
     Agent class for managing interactions between language models and SQL databases.
@@ -79,23 +82,27 @@ class Agent:
         Returns:
             tuple: The final query result and token counts (input tokens, output tokens) for all iterations.
         """
-        intokens, outokens = 0, 0
+        try:
+            intokens, outokens = 0, 0
 
-        for _ in range(iterations):
-            related_ddl = self.retriever.get_related_ddl(question)
-            if debug: print(f"related_ddl: {related_ddl}")
+            for _ in range(iterations):
+                related_ddl = self.retriever.get_related_ddl(question)
+                if debug: print(f"related_ddl: {related_ddl}")
 
-            prompt_sql_generation = self.promptBuilder.fill_sql_prompt(question, self.database.dialect, related_ddl[0], history=self.history)
-            response, new_intokens, new_outokens = self.llm.invoke(prompt_sql_generation)
-            intokens += new_intokens
-            outokens += new_outokens
-            sql_query = extract_json(response)['sql_query']
-            if debug: print(f"sql generated: {sql_query}")
-            
-            result, status = self.execute_sql(sql_query)
-            if debug: print(f"result: {result}")
-            if status: break
-            
-            self.history += f"{sql_query} {result}\n"
+                prompt_sql_generation = self.promptBuilder.fill_sql_prompt(question, self.database.dialect, related_ddl[0], history=self.history)
+                response, new_intokens, new_outokens = self.llm.invoke(prompt_sql_generation)
+                intokens += new_intokens
+                outokens += new_outokens
+                sql_query = extract_json(response)['sql_query']
+                if debug: print(f"sql generated: {sql_query}")
+                
+                result, status = self.execute_sql(sql_query)
+                if debug: print(f"result: {result}")
+                if status: break
+                
+                self.history += f"{sql_query} {result}\n"
 
-        return result, intokens, outokens, sql_query
+            return result, intokens, outokens, sql_query
+        except Exception as e:
+            print('error en la infernecia', e)
+            raise 
