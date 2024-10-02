@@ -36,13 +36,13 @@ class Agent:
         self.retriever = VectorStoreRetriever(vectorstore, 5, name_collection)
         self.promptBuilder = PromptBuilder()
 
-    def document_database(self, force_update=False):
+    def document_database(self, database, force_update=False):
         """
         Documents the database by extracting table descriptions and saving them into the vector store.
         """
         print('document_database',self.name_collection)
         if not self.vectorstore.check_documents(self.name_collection) or force_update:
-            table_description = self.database.describe_database()
+            table_description = self.database.describe_database(database)
             self.vectorstore.add_ddls(table_description, self.name_collection)
             return True
         else:

@@ -92,7 +92,7 @@ def initialize_qdrant(data: InitializeModel):
                             vectorstore=qdrant,
                             name_collection=connection["database"])
         print('Entrenan documento', agent)
-        result = agent.document_database(force_update=True)
+        result = agent.document_database(connection["database"], force_update=True)
         print('Documentos Entrenados', result)
 
         return {"message": "Qdrant initialized", "payload": connection["database"]}
