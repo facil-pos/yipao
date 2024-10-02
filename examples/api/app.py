@@ -57,7 +57,7 @@ def root():
 
 
 class QueryModel(BaseModel):
-    Item: str = Field(..., description="Url database")
+    Item: str = Field(...,  examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], description="Url database")
     q: str = Field(..., description='Pregunta del usuario')
 
 class InitializeModel(BaseModel):
