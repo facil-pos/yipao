@@ -27,8 +27,7 @@ origins = [
 app = FastAPI(
         title="Simple Inference API",
         version="1.0.0",
-        description="Esta es una demo en swagger ui de una api para realizar consultas sql a una base de datos por medio de lenguaje natural"
-)
+        description="Esta es una demo en swagger ui de una api para realizar consultas sql a una base de datos por medio de lenguaje natural")
 app.openapi_version = "3.0.0"
 
 app.add_middleware(
@@ -94,7 +93,7 @@ def parse_sql_url(url):
     return connection
 
 
-qdrant = QdrantDB("http://localhost:6333", os.getenv('APIKEY_QDRANT'))
+qdrant = QdrantDB("https://98c14ee4-6da7-444e-8f29-07150b2694f6.europe-west3-0.gcp.cloud.qdrant.io:6333", "vofeeNh66oepXvhXID3ZpLqP_4n1nlJzjEApXucr25303irb5roKQw")
 chat = GoogleGenAi("gemini-1.5-flash","AIzaSyB0a2toqWMPKbqM5jojx1RFTT1PhT-T7zY",temperature=0.2)
 
 #--------------
@@ -145,7 +144,11 @@ def query_inference(data: QueryModel):
     try:
         res, _, _, sql_query = agent.invoke(data.q, debug=True, iterations=6)
 
-        res =  res.to_dict(orient="records")
+        try:
+	    res = res.to_dict(orient="records")
+        except Exception as e:
+	    print(f"Error converting result to dict: {e}")
+            res = str(res)
 
         return {"q": data.q, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
