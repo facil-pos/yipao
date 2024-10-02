@@ -143,12 +143,12 @@ def query_inference(data: QueryModel):
 
     try:
         res, _, _, sql_query = agent.invoke(data.q, debug=True, iterations=6)
-
+        
         try:
-	    res = res.to_dict(orient="records")
+            res = res.to_dict(orient="records")
         except Exception as e:
-	    print(f"Error converting result to dict: {e}")
-            res = str(res)
+            print(f"Error converting result to dict: {e}")
+            res = str(str)
 
         return {"q": data.q, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
