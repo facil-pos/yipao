@@ -1,0 +1,26 @@
+﻿yipao.LLM.vertex.VertexAiLLM
+============================
+
+.. currentmodule:: yipao.LLM.vertex
+
+.. autoclass:: VertexAiLLM
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~VertexAiLLM.__init__
+      ~VertexAiLLM.count_tokens
+      ~VertexAiLLM.invoke
+      ~VertexAiLLM.monitor
+      ~VertexAiLLM.validate_prompt
+   
+   
+
+   
+   
+   
