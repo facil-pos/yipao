@@ -144,11 +144,6 @@ class MySql:
         except Exception as e:
             print(e)
             return f"Error describing the database"
-        
-        finally:
-            if cursor:
-                cursor.close()  # Cerramos el cursor manualmente
-            self.connection.close()  # Cerramos la conexión
 
     
     def execute_query(self, query: str, markdown: bool = False):
@@ -174,5 +169,3 @@ class MySql:
             raise TypeError(f"SQL Error {sql_error.args[0]}: {sql_error.args[1]}")
         except Exception as e:
             raise TypeError(f"Error executing query: {e}") 
-        finally:
-            self.connection.close()

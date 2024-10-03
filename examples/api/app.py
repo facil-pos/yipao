@@ -148,7 +148,7 @@ def query_inference(data: QueryModel):
             res = res.to_dict(orient="records")
         except Exception as e:
             print(f"Error converting result to dict: {e}")
-            res = str(str)
+            res = str(res)
 
         return {"q": data.q, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
