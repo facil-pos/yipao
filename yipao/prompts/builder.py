@@ -27,5 +27,4 @@ class PromptBuilder():
         Returns:
             str: A formatted SQL prompt filled with the provided details.
         """
-        ddls = "\n\n".join(table_names)
-        return SQL_PROMPT.format(question=question, dialect_name=dialect_name, table_names=ddls, history=history)
+        return SQL_PROMPT.format(question=question, dialect_name=dialect_name, table_names=table_names, history=history)

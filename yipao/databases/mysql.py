@@ -102,6 +102,7 @@ class MySql:
             res = cursor.fetchall()
 
             resultados = res #ast.literal_eval(res)
+            print(f"Resultados: {resultados}")
             tablas = {}
 
             for fila in resultados:
@@ -125,6 +126,7 @@ class MySql:
                 if relacion and relacion not in tablas[nombre_tabla]['relaciones']:
                     tablas[nombre_tabla]['relaciones'].append(relacion)
 
+            print(f"Tablas: {tablas}")
             # Formatear la descripción para cada tabla
             descripciones = []
 

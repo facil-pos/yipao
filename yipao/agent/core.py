@@ -46,6 +46,7 @@ class Agent:
         print('document_database',self.name_collection)
         if not self.vectorstore.check_documents(self.name_collection) or force_update:
             table_description = self.database.describe_database(database)
+            print(f"Table descriptions: {table_description}")
             self.vectorstore.add_ddls(table_description, self.name_collection)
             return True
         else:
@@ -83,17 +84,14 @@ class Agent:
             tuple: The final query result and token counts (input tokens, output tokens) for all iterations.
         """
         try:
-            intokens, outokens = 0, 0
-
             for _ in range(iterations):
                 related_ddl = self.retriever.get_related_ddl(question)
-                if debug: print(f"related_ddl: {related_ddl}")
+                if debug: print(f"related_ddl: {str(related_ddl)}")
 
-                prompt_sql_generation = self.promptBuilder.fill_sql_prompt(question, self.database.dialect, related_ddl[0], history=self.history)
-                response, new_intokens, new_outokens = self.llm.invoke(prompt_sql_generation)
-                intokens += new_intokens
-                outokens += new_outokens
-                sql_query = extract_json(response)['sql_query']
+                prompt_sql_generation = self.promptBuilder.fill_sql_prompt(question, self.database.dialect, str(related_ddl), history=self.history)
+                if debug: print(f"prompt_sql_generation: {prompt_sql_generation}")
+                response = self.llm.invoke(prompt_sql_generation)
+                sql_query = extract_json(response[0])['sql_query']
                 if debug: print(f"sql generated: {sql_query}")
                 
                 result, status = self.execute_sql(sql_query)
@@ -102,7 +100,7 @@ class Agent:
                 
                 self.history += f"{sql_query} {result}\n"
 
-            return result, intokens, outokens, sql_query
+            return result, sql_query
         except Exception as e:
             print('error en la infernecia', e)
             raise 

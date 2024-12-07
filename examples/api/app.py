@@ -1,8 +1,9 @@
 import os
 # import ssl
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from vertexai.generative_models import GenerativeModel, SafetySetting, Part
+from vertexai.generative_models import SafetySetting
 from pydantic import BaseModel, Field
 from fastapi import HTTPException
 import re
@@ -15,35 +16,6 @@ from yipao.databases import MySql
 from yipao.vectorstores import QdrantDB
 from yipao.LLM import GoogleGenAi
 
-KEY_PATH='./credentials/gen-lang-client-0867205962-4a2d259770b4.json'
-PROJECT_ID = "gen-lang-client-0867205962"
-REGION = "us-central1"
-MODEL = "gemini-1.5-flash-002"
-CONFIG  = {
-    "max_output_tokens": 8192,
-    "temperature": 1,
-    "top_p": 0.95,
-}
-SAFETY_SETTINGS = [
-    SafetySetting(
-        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold=SafetySetting.HarmBlockThreshold.OFF
-    ),
-    SafetySetting(
-        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold=SafetySetting.HarmBlockThreshold.OFF
-    ),
-    SafetySetting(
-        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold=SafetySetting.HarmBlockThreshold.OFF
-    ),
-    SafetySetting(
-        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold=SafetySetting.HarmBlockThreshold.OFF
-    ),
-]
-added_excel = True
-
 app = FastAPI(
         title="Simple Inference API",
         version="1.0.0",
@@ -52,7 +24,7 @@ app.openapi_version = "3.0.0"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,28 +42,8 @@ app.add_middleware(
 # APP
 # --------------
 
-@app.get("/ping", summary="Ping de validacion")
-def root():
-    return {"Hello": "World"}
-
-
 class QueryModel(BaseModel):
-    Item: str = Field(...,  examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], description="Url database")
-    q: str = Field(..., description='Pregunta del usuario')
-
-class InitializeModel(BaseModel):
-    Item: str = Field(
-        ..., 
-        examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], 
-        description="Url database")
-
-    class Config:
-            schema_extra = {
-                "example": {
-                    "Item": "root:123456@127.0.0.1:3306/messagehistoryrag"
-                }
-            }
-
+    query: str = Field(..., description='Pregunta del usuario')
 
 def connect_sql():
     connection = {
@@ -103,90 +55,40 @@ def connect_sql():
     }
 
     try:
-        mysql = MySql(**db)
+        mysql = MySql(**connection)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to connect to MySQL: {str(e)}")
 
     return mysql
 
+qdrant =  QdrantDB('http://localhost:6333', os.getenv('QDRANT_API_KEY'), collection_name=os.getenv('DATABASE'))
+chat = GoogleGenAi(model="gemini-1.5-pro", api_key=os.getenv('APIKEYGEMINI'))
 
-def parse_sql_url(url):
-    pattern = re.compile(r'(?P<user>.*?):(?P<password>.*?)(?=@)@(?P<host>.*?):(?P<port>\d+?)/(?P<database>.*)')
-    match = pattern.match(url)
-    if match:
-        connection = match.groupdict()
-        connection['port'] = int(connection['port'])
-    else:
-        print("URL format is incorrect")
-    return connection
-
-
-qdrant = QdrantDB(':memory:')
-chat = VertexAiLLM(MODEL, KEY_PATH, PROJECT_ID, CONFIG, SAFETY_SETTINGS)
+qdrant.initialize_collection()
+mysql = connect_sql()
+agent = yp.Agent(llm=chat, database=mysql, vectorstore=qdrant, name_collection=os.getenv('DATABASE'))
 
 #--------------
 # ROUTES
 #--------------
 
 
-@app.get("/init_item", summary="Initializes by the item")
-def initialize_qdrant():
-    global added_excel
-    
-
-    qdrant.initialize(os.getenv('DATABASE'))
-
-    mysql = connect_sql()
-
-    agent = yp.Agent(llm=chat, 
-                        database=mysql, 
-                        vectorstore=qdrant,
-                        name_collection=os.getenv('DATABASE'))
-    agent.document_database()
-
-    if not added_excel:
-
-        file_path = './static/Question, intention and response.xlsx'
-
-        df = pd.read_excel(file_path)
-
-        selected_columns = df[['question (english)', 'intent (english)', 'intermediate response (SQL QUERY)']]
-
-        formatted_output = [
-            f"\npregunta: {row['question (english)']}\nintencion: {row['intent (english)']}\nejemplo de query: {row['intermediate response (SQL QUERY)']}\n"
-            for _, row in selected_columns.iterrows()
-        ]
-
-        qdrant.add_ddls(formatted_output, connection["database"])
-        added_excel = True
-
-        return {"message": "Qdrant initialized", "payload": connection["database"]}
-    except Exception as e:
-        print('error',e)
-        raise HTTPException(status_code=401, detail="No fue posible conectar a la db")
+@app.get("/health", summary="Healthcheck")
+def health():
+    return {"message": "Healthy"}
 
 @app.post("/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
 def query_inference(data: QueryModel):
 
-    connection = parse_sql_url(data.Item)
-
-    mysql = connect_sql(connection)
-
-    agent = yp.Agent(llm=chat, 
-                        database=mysql, 
-                        vectorstore=qdrant,
-                        name_collection=connection["database"])
-
     try:
-        res, _, _, sql_query = agent.invoke(data.q, debug=True, iterations=6)
+        res, sql_query = agent.invoke(data.query, debug=True, iterations=6)
         
         try:
             res = res.to_dict(orient="records")
         except Exception as e:
             print(f"Error converting result to dict: {e}")
             res = str(res)
-
-        return {"q": data.q, "res": res, "sql_query_generated": sql_query}
+        return {"q": data.query, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
         print('Error en el query',e)
         raise HTTPException(status_code=401, detail=f"Query execution failed")
