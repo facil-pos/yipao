@@ -61,7 +61,7 @@ def connect_sql():
 
     return mysql
 
-qdrant =  QdrantDB('http://localhost:6333', os.getenv('QDRANT_API_KEY'), collection_name=os.getenv('DATABASE'))
+qdrant =  QdrantDB(os.getenv('QDRANT_URL'), os.getenv('QDRANT_API_KEY'), collection_name=os.getenv('DATABASE'))
 chat = GoogleGenAi(model="gemini-1.5-pro", api_key=os.getenv('APIKEYGEMINI'))
 
 qdrant.initialize_collection()
