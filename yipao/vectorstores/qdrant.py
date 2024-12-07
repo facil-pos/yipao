@@ -1,4 +1,6 @@
 from qdrant_client import QdrantClient
+import openai
+
 
 class QdrantDB:
     """
@@ -18,6 +20,7 @@ class QdrantDB:
             TypeError: If cfg is not a string.
         """
         self.client = QdrantClient(cfg, api_key=api_key)
+        OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=os.getenv("OPENAI_KEY"))
         self.client.set_model(embedding_model)
         self.initialize(name_collection)
         print(f"Qdrant client initialized with Embedding-Model: {embedding_model}")

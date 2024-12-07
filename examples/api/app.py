@@ -2,10 +2,11 @@ import os
 import ssl
 from fastapi import FastAPI
 from pydantic import BaseModel
-import vertexai.preview.generative_models as generative_models
+from vertexai.generative_models import GenerativeModel, SafetySetting, Part
 from pydantic import BaseModel, Field
 from fastapi import HTTPException
 import re
+import pandas as pd
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -14,22 +15,34 @@ from yipao.databases import MySql
 from yipao.vectorstores import QdrantDB
 from yipao.LLM import VertexAiLLM
 
-KEY_PATH='./examples/credentials/gen-lang-client-0867205962-8353cd35557a.json'
+KEY_PATH='./credentials/gen-lang-client-0867205962-4a2d259770b4.json'
 PROJECT_ID = "gen-lang-client-0867205962"
 REGION = "us-central1"
-MODEL = "gemini-1.5-pro-preview-0514"
-CONFIG = {
-            "max_output_tokens": 1000,
-            "temperature": 0.3,
-            "top_p": 0.95,
-            "top_k": 40
-        }
-SAFETY_SETTINGS = {
-                    generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                }
+MODEL = "gemini-1.5-flash-002"
+CONFIG  = {
+    "max_output_tokens": 8192,
+    "temperature": 1,
+    "top_p": 0.95,
+}
+SAFETY_SETTINGS = [
+    SafetySetting(
+        category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold=SafetySetting.HarmBlockThreshold.OFF
+    ),
+    SafetySetting(
+        category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold=SafetySetting.HarmBlockThreshold.OFF
+    ),
+    SafetySetting(
+        category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold=SafetySetting.HarmBlockThreshold.OFF
+    ),
+    SafetySetting(
+        category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold=SafetySetting.HarmBlockThreshold.OFF
+    ),
+]
+added_excel = True
 
 app = FastAPI(
         title="Simple Inference API",
@@ -42,8 +55,8 @@ app.openapi_version = "3.0.0"
 # SSL
 #----------------
 
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ssl_context.load_cert_chain('./examples/api/server.crt', keyfile='./examples/api/server.key')
+# ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+# ssl_context.load_cert_chain('./credentials/server.crt', keyfile='./credentials/server.key')
 
 # --------------
 # APP
@@ -62,12 +75,12 @@ class InitializeModel(BaseModel):
     Item: str = Field(..., description="Name Item")
 
 
-def connect_sql(db):
+def connect_sql():
     connection = {
         'host': os.getenv('HOST'),
         'user': os.getenv('USERDB'),
         'password': os.getenv('PASSWORD'),
-        'database': db,
+        'database': os.getenv('DATABASE'),
         'port': int(os.getenv('PORT'))
     }
 
@@ -90,7 +103,7 @@ def parse_sql_url(url):
     return connection
 
 
-qdrant = QdrantDB(':memory:', os.getenv('APIKEY_QDRANT'))
+qdrant = QdrantDB(':memory:')
 chat = VertexAiLLM(MODEL, KEY_PATH, PROJECT_ID, CONFIG, SAFETY_SETTINGS)
 
 #--------------
@@ -98,21 +111,36 @@ chat = VertexAiLLM(MODEL, KEY_PATH, PROJECT_ID, CONFIG, SAFETY_SETTINGS)
 #--------------
 
 
-@app.post("/init_item", summary="Initializes by the item")
-def initialize_qdrant(data: InitializeModel):
+@app.get("/init_item", summary="Initializes by the item")
+def initialize_qdrant():
+    global added_excel
+    
 
-    connection = parse_sql_url(data.Item)
+    qdrant.initialize(os.getenv('DATABASE'))
 
-    qdrant.initialize(connection["database"])
-
-    mysql = connect_sql(connection)
+    mysql = connect_sql()
 
     agent = yp.Agent(llm=chat, 
                         database=mysql, 
                         vectorstore=qdrant,
-                        name_collection=data.Item)
+                        name_collection=os.getenv('DATABASE'))
     agent.document_database()
 
+    if not added_excel:
+
+        file_path = './static/Question, intention and response.xlsx'
+
+        df = pd.read_excel(file_path)
+
+        selected_columns = df[['question (english)', 'intent (english)', 'intermediate response (SQL QUERY)']]
+
+        formatted_output = [
+            f"\npregunta: {row['question (english)']}\nintencion: {row['intent (english)']}\nejemplo de query: {row['intermediate response (SQL QUERY)']}\n"
+            for _, row in selected_columns.iterrows()
+        ]
+
+        qdrant.add_ddls(formatted_output, connection["database"])
+        added_excel = True
 
     return {"message": "Qdrant initialized", "payload": data.Item}
 
