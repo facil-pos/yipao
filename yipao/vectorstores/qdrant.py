@@ -30,6 +30,7 @@ class QdrantDB:
         """
         Initializes the Qdrant client.
         """   
+        print('name', name_collection)
         if not self.client.collection_exists(name_collection):
             self.client.create_collection(
                 collection_name=name_collection,
@@ -86,6 +87,7 @@ class QdrantDB:
             bool: True if there are documents in the collection, False otherwise.
         """
         if not self.client.collection_exists(collection_name):
+            print("collection_name", collection_name)
             raise ValueError(f"Collection {collection_name} does not exist.")
         return True if self.client.count(collection_name).count > 0 else False
     

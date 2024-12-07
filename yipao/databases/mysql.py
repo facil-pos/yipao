@@ -87,7 +87,7 @@ class MySql:
             return f"Error describing the table: {e}"
         
 
-    def describe_database(self):
+    def describe_database(self,database):
         """
         Describes the Data Definition Language (DDL) structure and relationships of all tables.
 
@@ -95,9 +95,10 @@ class MySql:
             List[str]: List of descriptions for each table in the database.
 
         """
+        cursor = None
         try:
             cursor = self.connection.cursor()
-            cursor.execute(DESCRIBE_DATABASE_QUERY)
+            cursor.execute(DESCRIBE_DATABASE_QUERY.format(database, database))
             res = cursor.fetchall()
 
             resultados = res #ast.literal_eval(res)
@@ -155,6 +156,7 @@ class MySql:
         Returns:
         str: Result of the query execution.
         """
+        cursor = None
         try:
             cursor = self.connection.cursor()
             cursor.execute(query)

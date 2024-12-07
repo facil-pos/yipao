@@ -1,6 +1,6 @@
 import os
-import ssl
-from fastapi import FastAPI
+# import ssl
+from fastapi import FastAPI, Body
 from pydantic import BaseModel
 from vertexai.generative_models import GenerativeModel, SafetySetting, Part
 from pydantic import BaseModel, Field
@@ -13,7 +13,7 @@ load_dotenv()
 import yipao as yp
 from yipao.databases import MySql
 from yipao.vectorstores import QdrantDB
-from yipao.LLM import VertexAiLLM
+from yipao.LLM import GoogleGenAi
 
 KEY_PATH='./credentials/gen-lang-client-0867205962-4a2d259770b4.json'
 PROJECT_ID = "gen-lang-client-0867205962"
@@ -47,9 +47,17 @@ added_excel = True
 app = FastAPI(
         title="Simple Inference API",
         version="1.0.0",
-        description="This is the OpenAPI specification of a service to query a sql database using natural language. Its purpose is to illustrate how to declare your REST API as an OpenAPI tool."
-)
+        description="Esta es una demo en swagger ui de una api para realizar consultas sql a una base de datos por medio de lenguaje natural")
 app.openapi_version = "3.0.0"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 #----------------
 # SSL
@@ -62,17 +70,27 @@ app.openapi_version = "3.0.0"
 # APP
 # --------------
 
-@app.get("/ping")
+@app.get("/ping", summary="Ping de validacion")
 def root():
     return {"Hello": "World"}
 
 
 class QueryModel(BaseModel):
-    Item: str = Field(..., description="Name Item")
-    q: str
+    Item: str = Field(...,  examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], description="Url database")
+    q: str = Field(..., description='Pregunta del usuario')
 
 class InitializeModel(BaseModel):
-    Item: str = Field(..., description="Name Item")
+    Item: str = Field(
+        ..., 
+        examples=["root:123456@127.0.0.1:3306/messagehistoryrag"], 
+        description="Url database")
+
+    class Config:
+            schema_extra = {
+                "example": {
+                    "Item": "root:123456@127.0.0.1:3306/messagehistoryrag"
+                }
+            }
 
 
 def connect_sql():
@@ -85,7 +103,7 @@ def connect_sql():
     }
 
     try:
-        mysql = MySql(**connection)
+        mysql = MySql(**db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to connect to MySQL: {str(e)}")
 
@@ -142,10 +160,12 @@ def initialize_qdrant():
         qdrant.add_ddls(formatted_output, connection["database"])
         added_excel = True
 
-    return {"message": "Qdrant initialized", "payload": data.Item}
+        return {"message": "Qdrant initialized", "payload": connection["database"]}
+    except Exception as e:
+        print('error',e)
+        raise HTTPException(status_code=401, detail="No fue posible conectar a la db")
 
-
-@app.post("/inference", summary="Executes a natural language query. Needs Item and 'q' is the query to be performed.")
+@app.post("/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
 def query_inference(data: QueryModel):
 
     connection = parse_sql_url(data.Item)
@@ -159,7 +179,15 @@ def query_inference(data: QueryModel):
 
     try:
         res, _, _, sql_query = agent.invoke(data.q, debug=True, iterations=6)
+        
+        try:
+            res = res.to_dict(orient="records")
+        except Exception as e:
+            print(f"Error converting result to dict: {e}")
+            res = str(res)
+
+        return {"q": data.q, "res": res, "sql_query_generated": sql_query}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
+        print('Error en el query',e)
+        raise HTTPException(status_code=401, detail=f"Query execution failed")
     
-    return {"q": data.q, "res": res, "sql_query_generated": sql_query}
