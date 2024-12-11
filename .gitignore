@@ -1,3 +1,5 @@
+.env
+*/.env
 .venv
 .yipao
 examples/vectorstore
