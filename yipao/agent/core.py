@@ -90,8 +90,13 @@ class Agent:
 
                 prompt_sql_generation = self.promptBuilder.fill_sql_prompt(question, self.database.dialect, str(related_ddl), history=self.history)
                 if debug: print(f"prompt_sql_generation: {prompt_sql_generation}")
-                response = self.llm.invoke(prompt_sql_generation)
-                sql_query = extract_json(response[0])['sql_query']
+                
+                with open("generated_prompt.txt", "w") as file:
+                    file.write(prompt_sql_generation)
+
+                
+                response_text, input_tokens, output_tokens = self.llm.invoke(prompt_sql_generation)
+                sql_query = extract_json(response_text)['sql_query']
                 if debug: print(f"sql generated: {sql_query}")
                 
                 result, status = self.execute_sql(sql_query)

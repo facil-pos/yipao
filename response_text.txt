@@ -1,0 +1,5 @@
+```json
+{
+    "sql_query": "SELECT DATE_FORMAT(s.sale_time, '%Y-%m') AS month, SUM(s.total) AS total_sales FROM phppos_sales s WHERE s.deleted = 0 GROUP BY month ORDER BY month DESC LIMIT 10;"
+}
+```

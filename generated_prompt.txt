@@ -1,9 +1,7 @@
-
-
-SQL_PROMPT = """As a {dialect_name} expert, your task is to generate SQL queries based on user questions. Ensure that your {dialect_name} queries are syntactically correct and tailored to the user's inquiry. Retrieve at most 10 results using and order them for relevance. Avoid querying for all columns from a table. Select only the necessary columns wrapped in backticks (`).  Stop after delivering the SQLQuery, avoiding follow-up questions.
+As a mariadb expert, your task is to generate SQL queries based on user questions. Ensure that your mariadb queries are syntactically correct and tailored to the user's inquiry. Retrieve at most 10 results using and order them for relevance. Avoid querying for all columns from a table. Select only the necessary columns wrapped in backticks (`).  Stop after delivering the SQLQuery, avoiding follow-up questions.
 
 only use the following tables, the ddl of each table will be shown: 
-{table_names}
+['Description of the table phppos_sales_items:\nsale_id (int(10)), item_id (int(10)), description (varchar(255)), serialnumber (varchar(255)), line (int(3)), quantity_purchased (double), item_cost_price (double), item_unit_price (double), discount_percent (double), commission (double), unit_measurement (varchar(100)), price_presentation (double), unit_quantity (double), unit_quantity_item (double), unit_quantity_presentation (double), has_selected_unit (tinyint(4)), name_unit (varchar(60)), has_sales_units (tinyint(4)), custom1_subcategory (varchar(80)), custom2_subcategory (varchar(80)), id_tier (int(11)), numero_cuenta (varchar(50)), numero_documento (varchar(20)), titular_cuenta (varchar(120)), tasa (double), tipo_documento (varchar(50)), tipo_numero (varchar(10)), fecha_estado (timestamp), tipo_cuenta (varchar(50)), observaciones (text), celular (varchar(100)), file_id (bigint(20)), img_uploaded_by (int(11)), commission_spa (double), employee_id_spa (int(11)), personalized (varchar(100)), signed_to (int(11)), is_combined (tinyint(4)), combinations (varchar(255)), name_combined (varchar(150)), code_line (varchar(10)), transaction_status (varchar(20)), comentarios (varchar(255)), disc_shop (double), quantity_promo (double), promo_type (int(11)), Relationships of the table:\nNone (None), phppos_sales (sale_id), phppos_items (item_id), phppos_transfer_files (file_id)', 'Description of the table phppos_sales:\nsale_id (int(10)), sale_time (timestamp), serie_number_invoice (varchar(30)), invoice_number (int(11)), ticket_number (int(11)), is_invoice (int(1)), alternate_number (int(11)), serie_alternate_number (varchar(45)), customer_id (int(10)), employee_id (int(10)), sold_by_employee_id (int(10)), location_id (int(11)), comment (text), show_comment_on_receipt (int(1)), payment_type (varchar(255)), cc_ref_no (varchar(255)), auth_code (varchar(255)), deleted_by (int(10)), deleted (int(1)), support_id (int(11)), comanda_id (int(11)), account_to_billed (int(11)), name_customer_c (varchar(100)), tipo (varchar(20)), subtotal (decimal(23,10)), descuento_item (decimal(23,10)), taxt (decimal(23,10)), transaction (varchar(50)), contact (text), transfer_id (bigint(20)), errors (longtext), status (varchar(50)), is_fe (tinyint(4)), exoneration (double), ref_note (varchar(4)), sale_rate (double), total (decimal(23,10)), documento (int(11)), suspended (int(1)), store_account_payment (int(1)), register_id (int(11)), date_deleted (datetime), tier_id (int(10)), ntable (int(11)), overwrite_tax (tinyint(4)), synchronizations_offline_id (int(11)), sale_id_offline (int(11)), another_currency (tinyint(4)), currency (varchar(10)), total_other_currency (decimal(23,10)), value_other_currency (decimal(23,10)), transaction_rate (double), opcion_sale (varchar(50)), divisa (varchar(10)), cufe (varchar(150)), qr (text), response_api (text), commnet_note (text), order_id (bigint(20)), discount_shop (decimal(23,10)), is_remission (tinyint(4)), date_expirate_payment (datetime), payment_number_fees (int(11)), type_fees_payment (varchar(45)), created_at (timestamp), updated_at (timestamp), Relationships of the table:\nNone (None), phppos_customers (person_id), phppos_employees (person_id), phppos_locations (location_id), phppos_technical_supports (Id_support), phppos_comandas (comanda_id), phppos_registers (register_id), phppos_price_tiers (id), phppos_synchronizations_offline (id)', 'Description of the table phppos_sales_receivable:\nid_sales_receivable (int(11)), sale_id (int(10)), status (tinyint(4)), order_payment (int(11)), total (double), payments (double), payment_date (datetime), created_at (datetime), updated_at (datetime), observation (text), Relationships of the table:\nNone (None), phppos_sales (sale_id)', 'Description of the table phppos_sales_withholdings:\nsale_id (int(11)), rete_id (varchar(100)), tope (double), percent (double), total (double), short_name (varchar(80)), base (double), account_id (int(11)), Relationships of the table:\nNone (None), phppos_sales (sale_id), phppos_withholdings_confg (rete_id), phppos_accounting_accounts (accounting_account_id)', 'Description of the table phppos_sales_remission:\nsale_id (int(10)), state_r (varchar(45)), link_file (varchar(200)), description (varchar(200)), updated (timestamp), Relationships of the table:\nNone (None), phppos_sales (sale_id), phppos_remisision_state (name)']
 
 Exemple of questions and SQL QUERY:
 
@@ -213,10 +211,10 @@ ORDER BY
     count(*)  asc limit 1;"
 
 Question from the user:
-"{question}"
+"Dame un informe de ventas por mes en el total de años"
 
 History:
-{history}
+
 
 Use the history as a guide.
 Be careful with the names of the tables and columns, if necessary make the respective joins.
@@ -224,22 +222,7 @@ Be careful with the names of the columns and their respective tables to avoid co
 You must use the tables provided. 
 
 Do not include explanatory text. Only generate the final SQL query wrapped in the JSON format below:
-{{
+{
     "sql_query": "your sql query here"
-}}
-
-"""
-
-
-
-FINAL_RESPONSE_PROMPT = """You are the helpful assistant designed to answer user questions based on the data provided from the database in context. Your goal is to analyze the user's query and provide a helpful response using only the information available in the context. If Context is None or Empty, say you don't have the data to answer the question.
-
-DATAFRAME CONTEXT:
-{context_df}
-
-USER QUESTION:
-{user_query}
-
-ASSISTANT RESPONSE:
-"""
+}
 

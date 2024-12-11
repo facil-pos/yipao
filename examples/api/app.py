@@ -3,18 +3,16 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from vertexai.generative_models import SafetySetting
 from pydantic import BaseModel, Field
 from fastapi import HTTPException
-import re
-import pandas as pd
+
 from dotenv import load_dotenv
 load_dotenv()
 
 import yipao as yp
 from yipao.databases import MySql
 from yipao.vectorstores import QdrantDB
-from yipao.LLM import GoogleGenAi
+from yipao.LLM import OpenAIGPT
 
 app = FastAPI(
         title="Simple Inference API",
@@ -62,7 +60,7 @@ def connect_sql():
     return mysql
 
 qdrant =  QdrantDB(os.getenv('QDRANT_URL'), os.getenv('QDRANT_API_KEY'), collection_name=os.getenv('DATABASE'))
-chat = GoogleGenAi(model="gemini-1.5-pro", api_key=os.getenv('APIKEYGEMINI'))
+chat = OpenAIGPT(os.getenv('OPENAI_API_KEY'))
 
 qdrant.initialize_collection()
 mysql = connect_sql()
@@ -73,11 +71,11 @@ agent = yp.Agent(llm=chat, database=mysql, vectorstore=qdrant, name_collection=o
 #--------------
 
 
-@app.get("/test_yipao/health", summary="Healthcheck")
+@app.get("/test_asuna/test_yipao/health", summary="Healthcheck")
 def health():
     return {"message": "Healthy"}
 
-@app.post("/test_yipao/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
+@app.post("/test_asuna/test_yipao/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
 def query_inference(data: QueryModel):
 
     try:
