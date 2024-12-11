@@ -77,7 +77,7 @@ agent = yp.Agent(llm=chat, database=mysql, vectorstore=qdrant, name_collection=o
 def health():
     return {"message": "Healthy"}
 
-@app.post("/test_yipao/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
+@app.post("/test_asuna/test_yipao/inference", summary="Ejecuta una consulta en lenguaje natural, devuelve el resultado de la consulta junto con la consulta creada")
 def query_inference(data: QueryModel):
 
     try:
